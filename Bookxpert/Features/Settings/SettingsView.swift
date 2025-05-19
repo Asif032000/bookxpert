@@ -8,9 +8,34 @@
 import SwiftUI
 import UserNotifications
 
+enum ThemeOption: String, CaseIterable, Identifiable {
+    case system, light, dark
+
+    var id: String { rawValue }
+
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: return nil
+        case .light: return .light
+        case .dark: return .dark
+        }
+    }
+
+    static func from(scheme: ColorScheme?) -> ThemeOption {
+        switch scheme {
+        case .some(.light): return .light
+        case .some(.dark): return .dark
+        default: return .system
+        }
+    }
+}
+
 struct SettingsView: View {
     @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = true
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var permissionStatus: UNAuthorizationStatus?
+
+    @State private var selectedTheme: ThemeOption = .system
 
     var body: some View {
         Form {
@@ -28,10 +53,23 @@ struct SettingsView: View {
                         .foregroundColor(.gray)
                 }
             }
+
+            Section(header: Text("Appearance")) {
+                Picker("Theme", selection: $selectedTheme) {
+                    ForEach(ThemeOption.allCases) { option in
+                        Text(option.rawValue.capitalized).tag(option)
+                    }
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .onChange(of: selectedTheme) { newValue in
+                    themeManager.selectedScheme = newValue.colorScheme
+                }
+            }
         }
         .navigationTitle("Settings")
         .onAppear {
             getNotificationPermissionStatus()
+            selectedTheme = ThemeOption.from(scheme: themeManager.selectedScheme)
         }
     }
 
@@ -65,3 +103,4 @@ struct SettingsView: View {
         }
     }
 }
+
