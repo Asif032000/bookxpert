@@ -35,12 +35,15 @@ struct BookxpertApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
     @StateObject private var authService = AuthService()
+    @StateObject private var themeManager = ThemeManager()
     var body: some Scene {
         
         WindowGroup {
             RootView()
                 .environmentObject(authService)
-                .preferredColorScheme(.light)
+                .environmentObject(themeManager)
+                .preferredColorScheme(themeManager.selectedScheme)
+//                .preferredColorScheme(.light)
         }
     }
 }
